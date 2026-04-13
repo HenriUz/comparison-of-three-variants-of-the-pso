@@ -1,1 +1,2 @@
-from .utils import Particle
+from .sbpso import SBPSO
+from .utils import *
