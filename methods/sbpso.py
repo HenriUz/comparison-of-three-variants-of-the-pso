@@ -82,6 +82,8 @@ def generate_initial_swarm(problem: Problem, size: int, swarm: list) -> tuple[fl
         particle = generate_particle(problem)
         swarm.append(particle)
 
+        print(particle.x)
+
         if particle.objective > best_objective or (particle.objective == best_objective and particle.number_aisles < best_number_aisles):
             best_objective = particle.objective
             best_number_aisles = particle.number_aisles
@@ -232,7 +234,7 @@ def removal_of_elements(S: set[int], N: int) -> set[tuple[str, int]]:
 
 def SBPSO(problem: Problem, size: int, max_generation: int, c1: float, c2: float, c3: float, c4: float, k: int) -> None:
     """
-    Implementation of Set-Based PSO, developed by Langeveld and Engelbrecht, for the order-batching approach. The algorithm operates solely within the set of aisles, and orders are filled greedily based on the selected aisles.
+    Implementation of Set-Based PSO for the order-batching approach. The algorithm operates solely within the set of aisles, and orders are filled greedily based on the selected aisles.
 
     In this algorithm, `c1` and `c2` must be in the closed interval between 0 and 1, and `c3` and `c4` in the closed interval between 0 and the number of aisles. `c3` and `c4` are not checked, since the functions that use them limit the size to the size of the universe if they are larger.
 
