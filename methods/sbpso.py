@@ -82,8 +82,6 @@ def generate_initial_swarm(problem: Problem, size: int, swarm: list) -> tuple[fl
         particle = generate_particle(problem)
         swarm.append(particle)
 
-        print(particle.x)
-
         if particle.objective > best_objective or (particle.objective == best_objective and particle.number_aisles < best_number_aisles):
             best_objective = particle.objective
             best_number_aisles = particle.number_aisles
@@ -172,12 +170,12 @@ def k_tournament_selection(problem: Problem, particle: SetParticle, A: set[int],
     """
     
     velocity = set()
-    sorted_a = sorted(A)
-    sorted_len = min(k, len(sorted_a))
-    
+    remaining = list(A)
+
     for _ in range(N):
         # Selecting the k elements (if the size of the set is less than k, the elements will be the set itself).    
-        elements = sample(sorted_a, sorted_len)
+        k_actual = min(k, len(remaining))
+        elements = sample(remaining, k_actual)
         
         # Selecting the best.
         best_element = 0
@@ -193,10 +191,9 @@ def k_tournament_selection(problem: Problem, particle: SetParticle, A: set[int],
             particle_clone.number_aisles += 1
             particle_clone.x.add(e)
             
-            for a in range(problem.a):
-                if a in particle_clone.x:
-                    for item, quantity in problem.aisles[a].items():
-                        particle_clone.aisles_items[item] += quantity
+            for a in particle_clone.x:
+                for item, quantity in problem.aisles[a].items():
+                    particle_clone.aisles_items[item] += quantity
 
             # Calculating the value of the objective function and identifying the optimal element.
             particle_clone.add_orders(problem)
@@ -208,6 +205,7 @@ def k_tournament_selection(problem: Problem, particle: SetParticle, A: set[int],
                 best_value = particle_clone.objective
 
         velocity.add(("+", best_element))
+        remaining.remove(best_element)
     return velocity
 
 def removal_of_elements(S: set[int], N: int) -> set[tuple[str, int]]:
@@ -299,10 +297,9 @@ def SBPSO(problem: Problem, size: int, max_generation: int, c1: float, c2: float
 
             # Updating available items.
             swarm[i].aisles_items = dict.fromkeys(range(problem.i), 0)
-            for a in range(problem.a):
-                if a in swarm[i].x:
-                    for item, quantity in problem.aisles[a].items():
-                        swarm[i].aisles_items[item] += quantity
+            for a in swarm[i].x:
+                for item, quantity in problem.aisles[a].items():
+                    swarm[i].aisles_items[item] += quantity
         
         # Updating personal and global values.
         for i in range(size):
