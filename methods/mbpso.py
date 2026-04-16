@@ -1,7 +1,7 @@
 import math
 
 from dataclasses import dataclass
-from methods.utils import Particle
+from methods.utils import add_orders, Particle
 from process.dataset import Problem
 from random import uniform
 from time import perf_counter
@@ -11,19 +11,6 @@ class BinaryParticle(Particle):
     pbest: list[int]
     transfer: list[float]
     velocity: list[float]
-
-    def clone(self) -> BinaryParticle:
-        return BinaryParticle(
-            self.aisles_items.copy(),
-            self.selected_aisles[:],
-            self.orders[:],
-            self.number_items,
-            self.number_aisles,
-            self.objective,
-            self.pbest[:],
-            self.transfer[:],
-            self.velocity[:]
-        )
 
 def generate_particle(problem: Problem) -> BinaryParticle:
     """
@@ -53,10 +40,10 @@ def generate_particle(problem: Problem) -> BinaryParticle:
         if particle.selected_aisles[a]:
             particle.number_aisles += 1
             particle.pbest[a] = 1
-            for item, quantity in problem.aisles[a].items():
-                particle.aisles_items[item] += quantity
+            for item, qty in problem.aisles[a].items():
+                particle.aisles_items[item] += qty
     
-    particle.add_orders(problem)
+    particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
     particle.objective = problem.objective_function(particle.number_items, particle.number_aisles)
     return particle
 
@@ -79,8 +66,8 @@ def generate_initial_swarm(problem: Problem, size: int, v_min: float, v_max: flo
         best_particle (tuple[float, int, list[int], list[int]]): Information from the best particle.
     """
     
-    best_objective = 0.0
-    best_number_aisles = 0
+    best_obj = 0.0
+    best_n_aisles = 0
     best_aisles = []
     best_orders = []
 
@@ -88,18 +75,16 @@ def generate_initial_swarm(problem: Problem, size: int, v_min: float, v_max: flo
         particle = generate_particle(problem)
         swarm.append(particle)
 
-        # print(particle.selected_aisles)
-
-        if particle.objective > best_objective or (particle.objective == best_objective and particle.number_aisles < best_number_aisles):
-            best_objective = particle.objective
-            best_number_aisles = particle.number_aisles
+        if particle.objective > best_obj or (particle.objective == best_obj and particle.number_aisles < best_n_aisles):
+            best_obj = particle.objective
+            best_n_aisles = particle.number_aisles
             best_aisles = particle.selected_aisles
             best_orders = particle.orders
     
     for i in range(size):
         swarm[i].velocity = [((v_max - v_min) * uniform(0, 1) + v_min) for _ in range(problem.a)]
     
-    return (best_objective, best_number_aisles, best_aisles[:], best_orders[:])
+    return (best_obj, best_n_aisles, best_aisles[:], best_orders[:])
 
 def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float) -> None:
     """
@@ -130,9 +115,9 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
     
     # Starting the swarm.
     swarm = []
-    best_objective, best_number_aisles, best_aisles, best_orders = generate_initial_swarm(problem, size, v_min, v_max, swarm)
+    best_obj, best_n_aisles, best_aisles, best_orders = generate_initial_swarm(problem, size, v_min, v_max, swarm)
     
-    old_number_aisles = [0 for _ in range(size)]
+    old_n_aisles = [0 for _ in range(size)]
 
     generation = 0
     while generation < max_generation:
@@ -141,9 +126,8 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
 
         # Calculating velocity and updating positions.
         for i in range(size):
-            swarm[i].aisles_items = dict.fromkeys(range(problem.i), 0)
-            old_number_aisles[i] = swarm[i].number_aisles
-            swarm[i].number_aisles = 0
+            old_n_aisles[i] = swarm[i].number_aisles
+            
             for a in range(problem.a):
                 swarm[i].velocity[a] = w * swarm[i].velocity[a]
                 swarm[i].velocity[a] += c1 * uniform(0, 1) * (swarm[i].pbest[a] - swarm[i].selected_aisles[a])
@@ -158,6 +142,7 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
                 else:
                     swarm[i].transfer[a] = 2 / (1 + math.exp(-swarm[i].velocity[a])) - 1
         
+                old_selected = swarm[i].selected_aisles[a]
                 if uniform(0, 1) <= swarm[i].transfer[a]:
                     if swarm[i].velocity[a] <= 0:
                         swarm[i].selected_aisles[a] = 0
@@ -169,24 +154,28 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
                     swarm[i].selected_aisles[a] = 1 - swarm[i].selected_aisles[a]
 
                 # Updating available items.
-                if swarm[i].selected_aisles[a]:
+                if old_selected and not swarm[i].selected_aisles[a]:
+                    swarm[i].number_aisles -= 1
+                    for item, qty in problem.aisles[a].items():
+                        swarm[i].aisles_items[item] -= qty
+                elif not old_selected and swarm[i].selected_aisles[a]:
                     swarm[i].number_aisles += 1
-                    for item, quantity in problem.aisles[a].items():
-                        swarm[i].aisles_items[item] += quantity
+                    for item, qty in problem.aisles[a].items():
+                        swarm[i].aisles_items[item] += qty
 
         # Updating personal and global values.
         for i in range(size):
-            old_objective = swarm[i].objective
+            old_obj = swarm[i].objective
 
-            swarm[i].add_orders(problem)
+            swarm[i].number_items, swarm[i].orders = add_orders(problem, swarm[i].aisles_items)
             swarm[i].objective = problem.objective_function(swarm[i].number_items, swarm[i].number_aisles)
             
-            if swarm[i].objective > old_objective or (swarm[i].objective == old_objective and swarm[i].number_aisles < old_number_aisles[i]):
+            if swarm[i].objective > old_obj or (swarm[i].objective == old_obj and swarm[i].number_aisles < old_n_aisles[i]):
                 swarm[i].pbest = swarm[i].selected_aisles[:]
             
-            if swarm[i].objective > best_objective or (swarm[i].objective == best_objective and swarm[i].number_aisles < best_number_aisles):
-                best_objective = swarm[i].objective
-                best_number_aisles = swarm[i].number_aisles
+            if swarm[i].objective > best_obj or (swarm[i].objective == best_obj and swarm[i].number_aisles < best_n_aisles):
+                best_obj = swarm[i].objective
+                best_n_aisles = swarm[i].number_aisles
                 best_aisles = swarm[i].selected_aisles[:]
                 best_orders = swarm[i].orders[:]
         
@@ -202,7 +191,7 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
 
     problem.result["orders"] = best_orders
     problem.result["aisles"] = aisles
-    problem.result["objective"] = best_objective
+    problem.result["objective"] = best_obj
     problem.result["time"] = end - start
 
 def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float, k: float) -> None:
@@ -233,9 +222,9 @@ def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
     
     # Starting the swarm.
     swarm = []
-    best_objective, best_number_aisles, best_aisles, best_orders = generate_initial_swarm(problem, size, v_min, v_max, swarm)
+    best_obj, best_n_aisles, best_aisles, best_orders = generate_initial_swarm(problem, size, v_min, v_max, swarm)
 
-    old_number_aisles = [0 for _ in range(size)]
+    old_n_aisles = [0 for _ in range(size)]
 
     generation = 0
     while generation < max_generation:
@@ -244,9 +233,8 @@ def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
         
         # Calculating velocity and updating positions.
         for i in range(size):
-            swarm[i].aisles_items = dict.fromkeys(range(problem.i), 0)
-            old_number_aisles[i] = swarm[i].number_aisles
-            swarm[i].number_aisles = 0
+            old_n_aisles[i] = swarm[i].number_aisles
+            
             for a in range(problem.a):
                 swarm[i].velocity[a] = w * swarm[i].velocity[a]
                 swarm[i].velocity[a] += c1 * uniform(0, 1) * (swarm[i].pbest[a] - swarm[i].selected_aisles[a])
@@ -257,6 +245,8 @@ def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
 
                 # Calculating the value of the transfer function and applying it to the paricle's position.
                 swarm[i].transfer[a] = 1 - math.exp(-k * abs(swarm[i].velocity[a]))
+                
+                old_selected = swarm[i].selected_aisles[a]
                 if uniform(0, 1) <= swarm[i].transfer[a]:
                     if swarm[i].velocity[a] <= 0:
                         swarm[i].selected_aisles[a] = 0
@@ -268,24 +258,28 @@ def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
                     swarm[i].selected_aisles[a] = 1 - swarm[i].selected_aisles[a]
 
                 # Updating available items.
-                if swarm[i].selected_aisles[a]:
+                if old_selected and not swarm[i].selected_aisles[a]:
+                    swarm[i].number_aisles -= 1
+                    for item, qty in problem.aisles[a].items():
+                        swarm[i].aisles_items[item] -= qty
+                elif not old_selected and swarm[i].selected_aisles[a]:
                     swarm[i].number_aisles += 1
-                    for item, quantity in problem.aisles[a].items():
-                        swarm[i].aisles_items[item] += quantity
+                    for item, qty in problem.aisles[a].items():
+                        swarm[i].aisles_items[item] += qty
 
         # Updating personal and global values.
         for i in range(size):
-            old_objective = swarm[i].objective
+            old_obj = swarm[i].objective
 
-            swarm[i].add_orders(problem)
+            swarm[i].number_items, swarm[i].orders = add_orders(problem, swarm[i].aisles_items)
             swarm[i].objective = problem.objective_function(swarm[i].number_items, swarm[i].number_aisles)
             
-            if swarm[i].objective > old_objective or (swarm[i].objective == old_objective and swarm[i].number_aisles < old_number_aisles[i]):
+            if swarm[i].objective > old_obj or (swarm[i].objective == old_obj and swarm[i].number_aisles < old_n_aisles[i]):
                 swarm[i].pbest = swarm[i].selected_aisles[:]
             
-            if swarm[i].objective > best_objective or (swarm[i].objective == best_objective and swarm[i].number_aisles < best_number_aisles):
-                best_objective = swarm[i].objective
-                best_number_aisles = swarm[i].number_aisles
+            if swarm[i].objective > best_obj or (swarm[i].objective == best_obj and swarm[i].number_aisles < best_n_aisles):
+                best_obj = swarm[i].objective
+                best_n_aisles = swarm[i].number_aisles
                 best_aisles = swarm[i].selected_aisles[:]
                 best_orders = swarm[i].orders[:]
         
@@ -301,5 +295,5 @@ def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
 
     problem.result["orders"] = best_orders
     problem.result["aisles"] = aisles
-    problem.result["objective"] = best_objective
+    problem.result["objective"] = best_obj
     problem.result["time"] = end - start
