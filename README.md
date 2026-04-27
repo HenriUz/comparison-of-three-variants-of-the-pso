@@ -13,8 +13,8 @@ The experiments were developed in Python 3.14.4 and run on an AMD Ryzen 5 7520U 
 
 The 2025 SBPO challenge dataset consists of 20 instances. These instances vary in orders ($o$), item variety ($i$), ans aisles ($a$), as shown in the table below. Each method was executed 30 times per instance using fixed pseudorandom seeds in the range [10,000, 99,999], generated via the "True Random Number Generator" available at [Random.org](https://www.random.org/), totaling 1,800 runs.
 
-> [!note] Used seeds
-> [10447, 22022, 24675, 35446, 35476, 37983, 39628, 40694, 41383, 42738, 45786, 46223, 48679, 56429, 56927, 58565, 60163, 61820, 61975, 65439, 68036, 68071, 72427, 73641, 78884, 82757, 85722, 87599, 94860, 95990]
+> [!note]
+> Used seeds: [10447, 22022, 24675, 35446, 35476, 37983, 39628, 40694, 41383, 42738, 45786, 46223, 48679, 56429, 56927, 58565, 60163, 61820, 61975, 65439, 68036, 68071, 72427, 73641, 78884, 82757, 85722, 87599, 94860, 95990].
 
 | Dataset | Orders | Items | Aisles |
 | ------- | ------ | ----- | ------ |
