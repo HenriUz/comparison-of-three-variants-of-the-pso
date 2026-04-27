@@ -86,7 +86,7 @@ def generate_initial_swarm(problem: Problem, size: int, v_min: float, v_max: flo
     
     return (best_obj, best_n_aisles, best_aisles[:], best_orders[:])
 
-def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float) -> None:
+def MBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float) -> None:
     """
     Implementation of Modified Binary PSO for the order-batching approach. The algorithm operates solely within the set of aisles, and orders are filled greedily based on the selected aisles.
 
@@ -194,7 +194,7 @@ def YMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min
     problem.result["objective"] = best_obj
     problem.result["time"] = end - start
 
-def ZMBPSO(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float, k: float) -> None:
+def MBPSOzt(problem: Problem, size: int, max_generation: int, w_max: float, w_min:float , c1: float, c2: float, v_min: float, v_max: float, r_mu: float, k: float) -> None:
     """
     Implementation of Modified Binary PSO for the order-batching approach. The algorithm operates solely within the set of aisles, and orders are filled greedily based on the selected aisles.
 
