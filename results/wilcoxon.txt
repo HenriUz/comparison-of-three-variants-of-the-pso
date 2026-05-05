@@ -1,0 +1,159 @@
+Dataset: instance_0001
+MBPSO vs MBPSOzt_05 -> p=0.31731050786291415, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.31731050786291415, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=1.7213435893906393e-06, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.15729920705028502, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=1.7224282827430733e-06, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.7180929312456739e-06, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0002
+MBPSO vs MBPSOzt_05 -> p=nan, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=nan, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=0.0026997960632601866, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=nan, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=0.0026997960632601866, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=0.0026997960632601866, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0003
+MBPSO vs MBPSOzt_05 -> p=0.7568562857871742, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.34619382140340615, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=1.732216233144114e-06, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.5675822698144436, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=1.7289484360195754e-06, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.7333066441991056e-06, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0004
+MBPSO vs MBPSOzt_05 -> p=0.49285624333358247, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.4027875819802271, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=0.17999967998585886, there was no statistically significant difference.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.8888969160246021, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=0.11692325376636518, there was no statistically significant difference.
+MBPSOzt_2 vs SBPSO -> p=0.36542368052696206, there was no statistically significant difference.
+
+Dataset: instance_0005
+MBPSO vs MBPSOzt_05 -> p=0.029325857758522034, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=0.0029870010912418365, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=9.90256667137146e-05, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0006
+MBPSO vs MBPSOzt_05 -> p=4.968419671058655e-05, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=3.901655676493975e-06, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=0.0027663204818964005, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-08, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=0.0001607796405169038, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0007
+MBPSO vs MBPSOzt_05 -> p=0.0008718203753232956, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=0.00466480478644371, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=0.027745192513481138, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=2.551823854446411e-07, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=2.0648653055617395e-05, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=0.03870758041187029, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0008
+MBPSO vs MBPSOzt_05 -> p=0.12797460438600614, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.00026894582882669606, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.00016113557960971867, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0009
+MBPSO vs MBPSOzt_05 -> p=2.7623027563095093e-06, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=1.30385160446167e-08, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=4.4075772166252136e-05, SBPSO was statistically superior.
+
+Dataset: instance_0010
+MBPSO vs MBPSOzt_05 -> p=0.0020201820880174637, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=3.725290298461914e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+
+Dataset: instance_0011
+MBPSO vs MBPSOzt_05 -> p=2.551823854446411e-07, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=9.313225746154785e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=2.60770320892334e-08, SBPSO was statistically superior.
+
+Dataset: instance_0012
+MBPSO vs MBPSOzt_05 -> p=0.0032229889184236526, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=5.587935447692871e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.732216233144114e-06, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+
+Dataset: instance_0013
+MBPSO vs MBPSOzt_05 -> p=1.862645149230957e-09, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+
+Dataset: instance_0014
+MBPSO vs MBPSOzt_05 -> p=2.60770320892334e-08, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+
+Dataset: instance_0015
+MBPSO vs MBPSOzt_05 -> p=9.220093488693237e-06, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSO vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=1.862645149230957e-09, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.862645149230957e-09, SBPSO was statistically superior.
+
+Dataset: instance_0016
+MBPSO vs MBPSOzt_05 -> p=0.6288843908969298, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.6193008918616425, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=3.7216831932210525e-06, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.8417302573677895, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=5.258201072083768e-06, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=3.716291950908611e-06, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0017
+MBPSO vs MBPSOzt_05 -> p=0.31731050786291415, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=nan, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=8.084788301662718e-06, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.31731050786291415, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=8.064383853754456e-06, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=8.084788301662718e-06, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0018
+MBPSO vs MBPSOzt_05 -> p=0.36820405148906443, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=0.6706943810042421, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=1.6997692098403253e-06, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.1881985689772161, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=1.711606992411454e-06, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.711606992411454e-06, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0019
+MBPSO vs MBPSOzt_05 -> p=0.03345384643470815, MBPSO was statistically superior.
+MBPSO vs MBPSOzt_2 -> p=0.15972433841626588, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=1.0824027187932519e-05, MBPSO was statistically superior.
+MBPSOzt_05 vs MBPSOzt_2 -> p=0.001490193531347245, MBPSOzt_2 was statistically superior.
+MBPSOzt_05 vs SBPSO -> p=0.00024586816471641867, MBPSOzt_05 was statistically superior.
+MBPSOzt_2 vs SBPSO -> p=1.1807926146948014e-05, MBPSOzt_2 was statistically superior.
+
+Dataset: instance_0020
+MBPSO vs MBPSOzt_05 -> p=nan, there was no statistically significant difference.
+MBPSO vs MBPSOzt_2 -> p=nan, there was no statistically significant difference.
+MBPSO vs SBPSO -> p=nan, there was no statistically significant difference.
+MBPSOzt_05 vs MBPSOzt_2 -> p=nan, there was no statistically significant difference.
+MBPSOzt_05 vs SBPSO -> p=nan, there was no statistically significant difference.
+MBPSOzt_2 vs SBPSO -> p=nan, there was no statistically significant difference.

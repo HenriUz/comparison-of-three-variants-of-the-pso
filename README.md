@@ -46,4 +46,6 @@ At the root level, there is a file named `main.py`, which provides a simpler int
 
 In the `process` directory, there is a file named `dataset.py` that reads the specified dataset and loads the data it contains. All algorithms receive an instance of the class contained within it, as the results are saved directly to the `result` attribute.
 
-Finally, the `methods` directory contains the code for the algorithms; the binary algorithms are in the `mbpso.py` file, and the set-based algorithm is in `sbpso.py`. The `utils.py` file contains code used in all the algorithms.
+The `methods` directory contains the code for the algorithms; the binary algorithms are in the `mbpso.py` file, and the set-based algorithm is in `sbpso.py`. The `utils.py` file contains code used in all the algorithms.
+
+Finally, the `results` directory contains the results obtained from the methods. The `wilcoxon.txt` file contains the Wilcoxon test results for all variants across the 30 runs, using 0.05 as the significance level. The `.csv` files are organized into: dataset, minimum value found, maximum value found, mean of values, standard deviation, gap, and average time. In the case of MBPSOzt, there is an indicator of the value of `k` used in front of the "_", with 05 representing 0.5.
