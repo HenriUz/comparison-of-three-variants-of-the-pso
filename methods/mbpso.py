@@ -7,12 +7,13 @@ from time import perf_counter
 
 @dataclass
 class BinaryParticle(Particle):
+    selected_aisles: list[int]
     pbest: list[int]
     velocity: list[float]
 
 def generate_particle(problem: Problem) -> BinaryParticle:
     """
-    Generates a particle with random aisles, with each aisle having a 50% chance of being selected.
+    Generates a particle with random aisles, each with a 50% inclusion probability.
 
     Args:
         problem (Problem): Dataset information.
@@ -22,26 +23,28 @@ def generate_particle(problem: Problem) -> BinaryParticle:
     """
 
     particle = BinaryParticle(
-        aisles_items = dict.fromkeys(range(problem.i), 0),
+        aisles_items    = dict.fromkeys(range(problem.i), 0),
+        orders          = [],
+        number_items    = 0,
+        number_aisles   = 0,
+        objective       = 0.0,
         selected_aisles = [1 if random() <= 0.5 else 0 for _ in range(problem.a)],
-        orders = [],
-        number_items = 0,
-        number_aisles = 0,
-        objective = 0.0,
-        pbest = [0] * problem.a,
-        velocity = []
+        pbest           = [0] * problem.a,
+        velocity        = []
     )
     
     for a in range(problem.a):
         if particle.selected_aisles[a]:
             particle.number_aisles += 1
             particle.pbest[a] = 1
-            for item in problem.aisles[a]:
-                particle.aisles_items[item] += problem.aisles[a][item]
+
+            aisle_items = problem.aisles[a]
+            for item in aisle_items:
+                particle.aisles_items[item] += aisle_items[item]
     
     particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
-    particle.objective = (
-        problem.objective_function(particle.number_items, particle.number_aisles)
+    particle.objective = problem.objective_function(
+        particle.number_items, particle.number_aisles
     )
 
     return particle
@@ -54,10 +57,8 @@ def generate_initial_swarm(
     swarm: list
 ) -> tuple[float, int, list[int], list[int]]:
     """
-    Generate the swarm particles.
-
-    The function returns a tuple containing only the essential information about the best particle in the swarm, namely: the objective function value, the number of aisles, the list of selected aisles, and the list of orders in the solution.
-
+    Populates the swarm with randomly generated particles and returns the global best.
+    
     The inital velocity of each component of the particle's velocity is generated randomly within the range of the maximum and minumum velocities. Performance is slightly degraded by the addition of another loop to calculate the velocities; this could be avoided by calculating the velocity during particle generation, but to ensure that the particles have the same initial position across all methods (including SBPSO), this step is necessary.
 
     Args:
@@ -65,16 +66,16 @@ def generate_initial_swarm(
         size (int): Swarm size.
         v_min (float): Minimum velocity.
         v_max (float): Maximum velocity.
-        swarm (list): An empty list where the particles will be stored.
+        swarm (list): Empty list to be populated.
     
     Returns:
-        best_particle (tuple[float, int, list[int], list[int]]): Information from the best particle.
+        best_particle (tuple[float, int, list[int], list[int]]): Objective value, number of aisles, aisles and orders of the best particle found.
     """
     
-    best_obj = 0.0
+    best_position = []
+    best_obj      = 0.0
     best_n_aisles = 0
-    best_aisles = []
-    best_orders = []
+    best_orders   = []
 
     for _ in range(size):
         particle = generate_particle(problem)
@@ -84,15 +85,15 @@ def generate_initial_swarm(
             particle.objective == best_obj 
             and particle.number_aisles < best_n_aisles
         ):
-            best_obj = particle.objective
+            best_position = particle.selected_aisles
+            best_obj      = particle.objective
             best_n_aisles = particle.number_aisles
-            best_aisles = particle.selected_aisles
-            best_orders = particle.orders
+            best_orders   = particle.orders
     
     for i in range(size):
         swarm[i].velocity = [((v_max - v_min) * random() + v_min) for _ in range(problem.a)]
     
-    return (best_obj, best_n_aisles, best_aisles[:], best_orders[:])
+    return (best_obj, best_n_aisles, best_position[:], best_orders[:])
 
 def MBPSO(
     problem: Problem, 
@@ -118,11 +119,11 @@ def MBPSO(
     Args:
         problem (Problem): Dataset information.
         size (int): Swarm size.
-        max_generation (int): Stop condition.
+        max_generation (int): Maximum number of iterations.
         w_max (float): Initial inertia.
         w_min (float): Final inertia.
-        c1 (float): Cognitive component.
-        c2 (float): Social component.
+        c1 (float): Cognitive acceleration coefficient.
+        c2 (float): Social acceleration coefficient.
         v_min (float): Minimum velocity.
         v_max (float): Maximum velocity.
         r_mu (float): Probability of mutation.
@@ -252,11 +253,11 @@ def MBPSOzt(
     Args:
         problem (Problem): Dataset information.
         size (int): Swarm size.
-        max_generation (int): Stop condition.
+        max_generation (int): Maximum number of iterations.
         w_max (float): Initial inertia.
         w_min (float): Final inertia.
-        c1 (float): Cognitive component.
-        c2 (float): Social component.
+        c1 (float): Cognitive acceleration coefficient.
+        c2 (float): Social acceleration coefficient.
         v_min (float): Minimum velocity.
         v_max (float): Maximum velocity.
         r_mu (float): Probability of mutation.

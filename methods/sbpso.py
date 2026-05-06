@@ -1,313 +1,361 @@
-import math
-
 from dataclasses import dataclass
+from math import floor
 from methods.utils import add_orders, Particle
 from process.dataset import Problem
-from random import sample, uniform
+from random import random, sample
 from time import perf_counter
 
 @dataclass
 class SetParticle(Particle):
-    x: set[int]
+    x:     set[int]
     pbest: set[int]
 
 def generate_particle(problem: Problem) -> SetParticle:
     """
-    Generates a particle with random elements. Each element in the universe has a 50% chance of being selected.
-    
+    Generates a particle with random aisles, each with a 50% inclusion probability.
+
     Args:
-        problem (Problem): An instance of the Problem class containing the dataset information.
+        problem (Problem): Dataset information.
     
     Returns:
-        particle (SetParticle): The particle that was created.
+        particle (SetParticle): Particle created.
     """
-    
+
     particle = SetParticle(
-        aisles_items = dict.fromkeys(range(problem.i), 0),
-        selected_aisles = [1 if uniform(0, 1) <= 0.5 else 0 for _ in range(problem.a)],
-        orders = [],
-        number_items = 0,
+        aisles_items  = dict.fromkeys(range(problem.i), 0),
+        orders        = [],
+        number_items  = 0,
         number_aisles = 0,
-        objective = 0.0,
-        x = set(),
-        pbest = set()
+        objective     = 0.0,
+        x             = {a for a in range(problem.a) if random() <= 0.5},
+        pbest         = set()
     )
 
-    # Updating the attributes associated with the aisles.
-    for a in range(problem.a):
-        if particle.selected_aisles[a]:
-            particle.number_aisles += 1
-            particle.x.add(a)
-            particle.pbest.add(a)
-            for item, qty in problem.aisles[a].items():
-                particle.aisles_items[item] += qty
+    particle.pbest = particle.x.copy()
+    for aisle in particle.x:
+        particle.number_aisles += 1
+
+        aisle_items = problem.aisles[aisle]
+        for item in aisle_items:
+            particle.aisles_items[item] += aisle_items[item]
 
     particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
-    particle.objective = problem.objective_function(particle.number_items, particle.number_aisles)
+    particle.objective = problem.objective_function(
+        particle.number_items, particle.number_aisles
+    )
+    
     return particle
 
-def generate_initial_swarm(problem: Problem, size: int, swarm: list) -> tuple[float, int, set[int], list[int]]:
+def generate_initial_swarm(
+    problem: Problem,
+    size: int,
+    swarm: list
+) -> tuple[float, int, set[int], list[int]]:
     """
-    Generate the swarm particles.
-
-    The function returns a tuple containing only the essential information about the best particle in the swarm, namely: the objective function value, the number of aisles, the set of aisles, and the list of orders in the solution.
-
+    Populates the swarm with randomly generated particles and returns the global best.
+    
     Args:
-        problem (Problem): An instance of the Problem class containing the dataset information.
-        size (int): Number of particles in the swarm.
-        swarm (list): An empty list where the particles will be stored.
+        problem (Problem): Dataset information.
+        size (int): Swarm size.
+        swarm (list): Empty list to be populated.
     
     Returns:
-        best_particle (tuple[float, int, set[int], list[int]]): Information from the best particle.
+        best_particle (tuple[float, int, set[int], list[int]]): Objective value, number of aisles, aisle set and orders of the best particle found.
     """
     
-    best_obj = 0.0
+    best_position = set()
+    best_obj      = 0.0
     best_n_aisles = 0
-    best_orders = []
-    G = set()
+    best_orders   = []
 
     for _ in range(size):
         particle = generate_particle(problem)
         swarm.append(particle)
 
-        if particle.objective > best_obj or (particle.objective == best_obj and particle.number_aisles < best_n_aisles):
-            best_obj = particle.objective
+        if particle.objective > best_obj or (
+            particle.objective == best_obj 
+            and particle.number_aisles < best_n_aisles
+        ):
+            best_position = particle.pbest
+            best_obj      = particle.objective
             best_n_aisles = particle.number_aisles
-            best_orders = particle.orders
-            G = particle.pbest
+            best_orders   = particle.orders
     
-    return (best_obj, best_n_aisles, G.copy(), best_orders[:])
+    return (best_obj, best_n_aisles, best_position.copy(), best_orders[:])
 
-def scalar_multiplication(n: float, V: set[tuple[str, int]]) -> set[tuple[str, int]]:
+def scalar_multiplication(
+    scalar: float,
+    velocity: set[tuple[str, int]]
+) -> set[tuple[str, int]]:
     """
-    Multiplies a velocity (`V`) by a scalar value (`n`). The result is a new velocity with `x` random elements of `V`. The number of random elements is defined by `floor(n * |V|)`.
+    Multiplies a velocity by a scalar value. The result is a new velocity with `floor(scalar * |velocity|)` random elements of `velocity`.
 
-    Note that the scalar value must be within the closed interval between 0 and 1, since sets cannot have a negative number of elements or repeated elements. Thus, if `n` is 1, the result is the velocity itself, and if `n` is 0, the result is empty.
+    The scalar must be in [0, 1]: a value of 1 returns the full velocity, and 0 returns an empty set.
 
     Args:
-        n (float): Scalar value in the closed interval between 0 and 1.
-        V (set[tuple[str, int]]): Set of operations to be performed on the particle.
+        scalar (float): Scaling factor in [0, 1].
+        velocity (set[tuple[str, int]]): Set of (operator, aisle) operations.
     
     Returns:
-        V' (set[tuple[str, int]]): A set of randomly selected operations.
+        subset (set[tuple[str, int]]): Randomly sampled subset of the velocity.
     """
 
-    if n < 0 or n > 1:
+    if scalar < 0 or scalar > 1:
         return set()
     
-    length = math.floor(n * len(V))
-    return set(sample(sorted(V), k = length))
+    k = floor(scalar * len(velocity))
+    return set(sample(sorted(velocity), k=k))
 
-def difference_in_positions(X1: set[int], X2: set[int]) -> set[tuple[str, int]]:
+def difference_in_positions(
+    target: set[int],
+    current: set[int]
+) -> set[tuple[str, int]]:
     """
-    Calculates the difference between two sets of positions (`X1` and `X2`), resulting in the velocity needed to transform `X2` into `X1`, by adding all elements that are only in `X1` (`X1 - X2`) and removing all elements that are only in `X2` (`X2 - X1`).
+    Computes the velocity needed to transform `current` into `target`.
+
+    Elements only in `target` become additions; elements only in `current` become removals.
 
     Args:
-        X1 (set[int]): Target positions.
-        X2 (set[int]): The set that will be transformed.
+        target (set[int]): Desired position.
+        current (set[int]): Position to be transformed.
 
     Returns:
-        V (set[tuple[str, int]]): Velocity required to transform `X2` into `X1`. 
+        velocity (set[tuple[str, int]]): Set of (operator, aisle) operations. 
     """
     
-    velocity = set()
+    additions = {("+", aisle) for aisle in target  - current}
+    removals  = {("-", aisle) for aisle in current - target}
+    return additions | removals
 
-    add = X1 - X2
-    while add:
-        velocity.add(("+", add.pop()))
-    
-    remove = X2 - X1
-    while remove:
-        velocity.add(("-", remove.pop()))
-
-    return velocity
-
-def number_of_elements(B: float, P: set[int]) -> int:
+def number_of_elements(
+    beta: float,
+    reference_set: set[int]
+) -> int:
     """
-    Calculates the number of elements to be selected from a set (`P`). This number is limited by the size of `P`, and is calculated as `floor(B) + 1` or `floor(B) + 0`, depending on whether the condition `uniform(0, 1) < B - floor(B)` is satisfied.
+    Stochastically determines how many elements to operate on, bounded by the set size. Uses `floor(beta)` with a probabilistic +1.
+    
+    Args:
+        beta (float): Expected number of elements.
+        reference_set (set[int]): Set whose size serves as the upper bound.
+    
+    Returns:
+        n_elements (int): Number of elements to operate on.
+    """
+    
+    count = floor(beta)
+    if random() < beta - count:
+        count += 1
+    
+    length = len(reference_set)
+    if count < length:
+        return count
+    return length
+
+def k_tournament_selection(
+    problem: Problem,
+    particle: SetParticle,
+    candidates: set[int],
+    n_to_add: int,
+    k: int
+) -> set[tuple[str, int]]:
+    """
+    Greedily selects `n_to_add` aisles from `candidates` using tournament selection.
+
+    For each slot, `k` candidates are sampled and the one that best improves the objective is chosen.
 
     Args:
-        B (float): Number used to determine the quantity of elements.
-        P (set[int]): Set of positions.
+        problem (Problem): Dataset information.
+        particle (SetParticle): Current particle.
+        candidates (set[int]): Aisles not present in `x union pbest union G`.
+        n_to_add (int): Number of aisles to select.
+        k (int): Tournament size.
     
     Returns:
-        N (int): Number of elements.
+        additions (set[tuple[str, int]]): Addition operations for the selected aisles.
     """
     
-    number = math.floor(B)
-    if uniform(0, 1) < B - number:
-        number += 1
+    additions = set()
+    remaining = sorted(candidates)
     
-    return min(len(P), number)
+    # Incremental item availability: updated as aisles are committed each round.
+    running_items = particle.aisles_items.copy()
 
-def k_tournament_selection(problem: Problem, particle: SetParticle, A: set[int], N: int, k: int) -> set[tuple[str, int]]:
-    """
-    Select `N` elements from the universe that are not in the union of the sets of the particle's position, its best position and the swarm's best position (`A`), to add to the current position.
+    # n_aisles increases by 1 each round; precompute the value for this round.
+    n_aisles = particle.number_aisles + 1
 
-    To avoid adding elements completely at random, for each `N`, `k` elements are selected at random, and only the best one is chosen.
-
-    Args:
-        problem (Problem): An instance of the Problem class containing the dataset information.
-        particle (SetParticle): The instance of the current particle.
-        A (set[int]): Elements of the universe that are not members of the union of the sets.
-        N (int): Number of items to be added.
-        k (int): Number of particles sampled before selecting the best one.
-    
-    Returns:
-        V (set[tuple[str, int]]): Elements that will be added to the set.
-    """
-    
-    velocity = set()
-    remaining = list(A)
-    base_items = particle.aisles_items.copy()
-    
-    for _ in range(N):
-        # Selecting the k elements (if the size of the set is less than k, the elements will be the set itself).    
-        k_actual = min(k, len(remaining))
-        elements = sample(remaining, k_actual)
+    for _ in range(n_to_add):
+        length = len(remaining)
+        if k < length:
+            tournament_size = k
+        else:
+            tournament_size = length
         
-        # Selecting the best.
-        best_element = -1
-        best_value = -1
+        contestants   = sample(remaining, tournament_size)
+        
+        best_aisle    = -1
+        best_obj      = -1
         best_n_aisles = problem.a
-        
-        for e in elements:
-            # Adding the temporary element and updating available items.
-            temp_items = base_items.copy()
-            for item, qty in problem.aisles[e].items():
-                temp_items[item] += qty
+
+        for aisle in contestants:
+            temp_items = running_items.copy()
+            for item in problem.aisles[aisle]:
+                temp_items[item] += problem.aisles[aisle][item]
             
-            # Calculating the value of the objective function and identifying the optimal element.
-            number_items, _ = add_orders(problem, temp_items)
-            obj = problem.objective_function(number_items, particle.number_aisles + 1)
+            n_items, _ = add_orders(problem, temp_items)
+            obj = problem.objective_function(n_items, n_aisles)
 
-            if obj > best_value or (obj == best_value and particle.number_aisles + 1 < best_n_aisles):
-                best_element = e
-                best_value = obj
-                best_n_aisles = particle.number_aisles + 1
+            if obj > best_obj or (obj == best_obj and n_aisles < best_n_aisles):
+                best_aisle    = aisle
+                best_obj      = obj
+                best_n_aisles = n_aisles
 
-        velocity.add(("+", best_element))
-        remaining.remove(best_element)
+        additions.add(("+", best_aisle))
+        remaining.remove(best_aisle)
         
-        # Updating items to reflect that the best option has already been chosen.
-        for item, qty in problem.aisles[best_element].items():
-            base_items[item] += qty
+        # Commit the selected aisle so the next round evaluates on top of it.
+        aisle_items = problem.aisles[best_aisle]
+        for item in aisle_items:
+            running_items[item] += aisle_items[item]
 
-    return velocity
+        n_aisles += 1
 
-def removal_of_elements(S: set[int], N: int) -> set[tuple[str, int]]:
+    return additions
+
+def removal_of_elements(
+    consensus_set: set[int],
+    n_to_remove: int
+) -> set[tuple[str, int]]:
     """
-    Given the set of points where the particle's position, its best position, and the swarm's best position (`S`) intersect, select `N` random elements to remove.
-
-    Note that `N` must be in the closed interval from 0 to the size of the set.
+    Randomly selects `n_to_remove` aisles from the consensus intersection to remove.
     
     Args:
-        S (set[int]): Intersection of sets.
-        N (int): Number of items to select at random.
+        consensus_set (set[int]): Aisles present in `x intersect pbest intersect G`.
+        n_ro_remove (int): Number of aisles to remove.
     
     Returns:
-        V (set[tuple[str, int]]): Elements that will be removed from the set.
+        removals (set[tuple[str, int]]): Removal operations for the selected aisles.
     """
     
-    elements = sample(sorted(S), k = N)
-    
-    velocity = set()
-    for e in elements:
-        velocity.add(("-", e))
-    
-    return velocity
+    selected = sample(sorted(consensus_set), k=n_to_remove)
+    return {("-", aisle) for aisle in selected}
 
-def SBPSO(problem: Problem, size: int, max_generation: int, c1: float, c2: float, c3: float, c4: float, k: int) -> None:
+def SBPSO(
+    problem: Problem,
+    size: int,
+    max_generation: int,
+    c1: float,
+    c2: float,
+    c3: float,
+    c4: float,
+    k: int
+) -> None:
     """
-    Implementation of Set-Based PSO for the order-batching approach. The algorithm operates solely within the set of aisles, and orders are filled greedily based on the selected aisles.
+    Set-Based PSO for the order batching. Operates on the aisle search space; orders are decoded greedily from the selected aisles after each position update.
 
-    In this algorithm, `c1` and `c2` must be in the closed interval between 0 and 1, and `c3` and `c4` in the closed interval between 0 and the number of aisles. `c3` and `c4` are not checked, since the functions that use them limit the size to the size of the universe if they are larger.
+    `c1` and `c2` must be in [0, 1] (scalar multipliers for set velocities). `c3` and `c4` control the expected number of random additions and removals; they are implicitly bounded by the relevant set sizes inside the called functions.
 
-    If the value of the objective function is the same when determining the best individual and global position, the postition with the fewest aisles will be chosen.
-
-    The solution will be saved directly in `problem`.
-
+    Result is written directly to `problem.result`.
+    
     Args:
-        problem (Problem): An instance of the Problem class containing the dataset information.
-        size (int): Number of particles in the swarm.
-        max_generation (int): Stop condition.
-        c1 (float): Cognitive component.
-        c2 (float): Social component.
-        c3 (float): Addition component.
-        c4 (float): Removal component.
-        k (int): Number for tournament selection.
+        problem (Problem): Dataset information.
+        size (int): Swarm size.
+        max_generation (int): Maximum number of iterations.
+        c1 (float): Cognitive acceleration coefficient (in [0, 1]).
+        c2 (float): Social acceleration coefficient (in [0, 1]).
+        c3 (float): Random addition coefficient.
+        c4 (float): Random removal coefficient.
+        k (int): Tournament size for k-tournament selection.
     """
     
-    if c1 < 0 or c1 > 1:
-        return
-    if c2 < 0 or c2 > 1:
+    if not (0 <= c1 <= 1) or not (0 <= c2 <= 1):
         return
     
     start = perf_counter()
 
-    # Starting the swarm.
-    swarm = []
-    best_obj, best_n_aisles, G, best_orders = generate_initial_swarm(problem, size, swarm)
-    U = set([a for a in range(problem.a)])
+    swarm         = []
+    prev_n_aisles = [0] * size
+    universe      = set(range(problem.a))
 
-    old_n_aisles = [0 for _ in range(size)]
-    
-    generation = 0
-    while generation < max_generation:
-        # Calculating velocity and updating positions.
+    global_best_obj, global_best_n_aisles, G, global_best_orders = (
+        generate_initial_swarm(problem, size, swarm)
+    )
+
+    for _ in range(max_generation):
         for i in range(size):
-            pbest_diff = difference_in_positions(swarm[i].pbest, swarm[i].x)
-            pbest_velocity = scalar_multiplication(c1 * uniform(0, 1), pbest_diff)
+            particle = swarm[i]
 
-            gbest_diff = difference_in_positions(G, swarm[i].x)
-            gbest_velocity = scalar_multiplication(c2 * uniform(0, 1), gbest_diff)
+            # Cognitive component: pull toward personal best.
+            cognitive_velocity = scalar_multiplication(
+                c1 * random(),
+                difference_in_positions(particle.pbest, particle.x)
+            )
 
-            A = U - (swarm[i].x | swarm[i].pbest | G)
-            random_addition = k_tournament_selection(problem, swarm[i], A, number_of_elements(c3 * uniform(0, 1), A), k)
+            # Social component: pull toward global best.
+            social_velocity = scalar_multiplication(
+                c2 * random(),
+                difference_in_positions(G, particle.x)
+            )
 
-            S = swarm[i].x & swarm[i].pbest & G
-            random_removal = removal_of_elements(S, number_of_elements(c4 * uniform(0, 1), S))
+            # Exploration: add aisles absent from all three reference sets.
+            external_aisles  = universe - (particle.x | particle.pbest | G)
+            random_additions = k_tournament_selection(
+                problem, particle, external_aisles,
+                number_of_elements(c3 * random(), external_aisles),
+                k
+            )
 
-            velocity = pbest_velocity | gbest_velocity | random_addition | random_removal
+            # Diversity: remove aisles present in all three reference sets.
+            consensus_aisles = particle.x & particle.pbest & G
+            random_removals  = removal_of_elements(
+                consensus_aisles,
+                number_of_elements(c4 * random(), consensus_aisles)
+            )
 
-            old_n_aisles[i] = swarm[i].number_aisles
-            while velocity:
-                op, aisle = velocity.pop()
+            velocity = cognitive_velocity | social_velocity | random_additions | random_removals
+
+            prev_n_aisles[i] = particle.number_aisles
+            for op, aisle in velocity:
+                aisle_items = problem.aisles[aisle]
                 if op == "+":
-                    swarm[i].selected_aisles[aisle] = 1
-                    swarm[i].number_aisles += 1
-                    swarm[i].x.add(aisle)
+                    particle.number_aisles += 1
+                    particle.x.add(aisle)
 
-                    for item, qty in problem.aisles[aisle].items():
-                        swarm[i].aisles_items[item] += qty
+                    for item in aisle_items:
+                        particle.aisles_items[item] += aisle_items[item]
                 else:
-                    swarm[i].selected_aisles[aisle] = 0
-                    swarm[i].number_aisles -= 1
-                    swarm[i].x.remove(aisle)
+                    particle.number_aisles -= 1
+                    particle.x.remove(aisle)
 
-                    for item, qty in problem.aisles[aisle].items():
-                        swarm[i].aisles_items[item] -= qty
+                    for item in aisle_items:
+                        particle.aisles_items[item] -= aisle_items[item]
         
-        # Updating personal and global values.
         for i in range(size):
-            old_obj = swarm[i].objective
+            particle = swarm[i]
+            prev_obj = particle.objective
 
-            swarm[i].number_items, swarm[i].orders = add_orders(problem, swarm[i].aisles_items)
-            swarm[i].objective = problem.objective_function(swarm[i].number_items, swarm[i].number_aisles)
+            particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
+            particle.objective = problem.objective_function(
+                particle.number_items, particle.number_aisles
+            )
 
-            if swarm[i].objective > old_obj or (swarm[i].objective == old_obj and swarm[i].number_aisles < old_n_aisles[i]):
-                swarm[i].pbest = swarm[i].x.copy()
+            if particle.objective > prev_obj or (
+                particle.objective == prev_obj 
+                and particle.number_aisles < prev_n_aisles[i]
+            ):
+                particle.pbest = particle.x.copy()
 
-            if swarm[i].objective > best_obj or (swarm[i].objective == best_obj and swarm[i].number_aisles < best_n_aisles):
-                best_obj = swarm[i].objective
-                best_n_aisles = swarm[i].number_aisles
-                best_orders = swarm[i].orders[:]
-                G = swarm[i].pbest.copy()
-
-        generation += 1
+            if particle.objective > global_best_obj or (
+                particle.objective == global_best_obj 
+                and particle.number_aisles < global_best_n_aisles
+            ):
+                G                    = particle.pbest.copy()
+                global_best_obj      = particle.objective
+                global_best_n_aisles = particle.number_aisles
+                global_best_orders   = particle.orders[:]
 
     end = perf_counter()
-    problem.result["orders"] = best_orders
-    problem.result["aisles"] = list(G)
-    problem.result["objective"] = best_obj
-    problem.result["time"] = end - start
+
+    problem.result["orders"]    = global_best_orders
+    problem.result["aisles"]    = list(G)
+    problem.result["objective"] = global_best_obj
+    problem.result["time"]      = end - start

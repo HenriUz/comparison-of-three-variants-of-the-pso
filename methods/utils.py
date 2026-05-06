@@ -8,7 +8,6 @@ class Particle():
 
     Attributes:
         aisles_items (dict[int, int]): Number of items available in selected aisles.
-        selected_aisles (list[int]): A binary list indicating whether or not an aisle is present.
         orders (list[int]): Indexes of the orders included in the solution.
         number_items (int): Total number of items in the selected orders.
         number_aisles (int): Number of aisles selected.
@@ -16,7 +15,6 @@ class Particle():
     """
     
     aisles_items: dict[int, int]
-    selected_aisles: list[int]
     orders: list[int]
     number_items: int
     number_aisles: int
@@ -42,15 +40,19 @@ def add_orders(problem: Problem, aisles_items: dict[int, int]) -> tuple[int, lis
     # Adding orders that do not violate the upper bound and supply constraints.
     available_items = aisles_items.copy()
     for o in problem.sorted_orders:
-        valid = True
-        for item, qty in problem.orders[o[0]].items():
-            if qty > available_items[item]:
-                valid = False
-                break
-        if valid and number_items + o[1] <= problem.ub:
-            number_items += o[1]
-            orders.append(o[0])
-            for item, qty in problem.orders[o[0]].items():
-                available_items[item] -= qty
+        if number_items + o[1] <= problem.ub:
+            orders_items = problem.orders[o[0]]
+
+            valid = True
+            for item in orders_items:
+                if orders_items[item] > available_items[item]:
+                    valid = False
+                    break
+            
+            if valid:
+                number_items += o[1]
+                #orders.append(o[0])
+                for item in orders_items:
+                    available_items[item] -= orders_items[item]
     
     return (number_items, orders)
