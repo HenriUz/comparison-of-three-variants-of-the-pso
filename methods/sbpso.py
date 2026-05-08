@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from math import floor
-from methods.utils import add_orders, Particle
+from methods.utils import Particle
 from process.dataset import Problem
 from random import random, sample
 from time import perf_counter
@@ -22,8 +22,7 @@ def generate_particle(problem: Problem) -> SetParticle:
     """
 
     particle = SetParticle(
-        aisles_items  = dict.fromkeys(range(problem.i), 0),
-        orders        = [],
+        aisles_items  = [0] * problem.i,
         number_items  = 0,
         number_aisles = 0,
         objective     = 0.0,
@@ -39,7 +38,7 @@ def generate_particle(problem: Problem) -> SetParticle:
         for item in aisle_items:
             particle.aisles_items[item] += aisle_items[item]
 
-    particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
+    particle.number_items = problem.add_orders(particle.aisles_items)
     particle.objective = problem.objective_function(
         particle.number_items, particle.number_aisles
     )
@@ -50,7 +49,7 @@ def generate_initial_swarm(
     problem: Problem,
     size: int,
     swarm: list
-) -> tuple[float, int, set[int], list[int]]:
+) -> tuple[float, int, set[int]]:
     """
     Populates the swarm with randomly generated particles and returns the global best.
     
@@ -60,13 +59,12 @@ def generate_initial_swarm(
         swarm (list): Empty list to be populated.
     
     Returns:
-        best_particle (tuple[float, int, set[int], list[int]]): Objective value, number of aisles, aisle set and orders of the best particle found.
+        best_particle (tuple[float, int, set[int]]): Objective value, number of aisles, and aisle set of the best particle found.
     """
     
     best_position = set()
     best_obj      = 0.0
     best_n_aisles = 0
-    best_orders   = []
 
     for _ in range(size):
         particle = generate_particle(problem)
@@ -79,9 +77,8 @@ def generate_initial_swarm(
             best_position = particle.pbest
             best_obj      = particle.objective
             best_n_aisles = particle.number_aisles
-            best_orders   = particle.orders
-    
-    return (best_obj, best_n_aisles, best_position.copy(), best_orders[:])
+            
+    return (best_obj, best_n_aisles, best_position.copy())
 
 def scalar_multiplication(
     scalar: float,
@@ -190,24 +187,22 @@ def k_tournament_selection(
         else:
             tournament_size = length
         
-        contestants   = sample(remaining, tournament_size)
+        contestants = sample(remaining, tournament_size)
         
-        best_aisle    = -1
-        best_obj      = -1
-        best_n_aisles = problem.a
-
+        best_aisle = -1
+        best_obj   = -1
+        
         for aisle in contestants:
             temp_items = running_items.copy()
             for item in problem.aisles[aisle]:
                 temp_items[item] += problem.aisles[aisle][item]
             
-            n_items, _ = add_orders(problem, temp_items)
+            n_items = problem.add_orders(temp_items)
             obj = problem.objective_function(n_items, n_aisles)
 
-            if obj > best_obj or (obj == best_obj and n_aisles < best_n_aisles):
-                best_aisle    = aisle
-                best_obj      = obj
-                best_n_aisles = n_aisles
+            if obj > best_obj:
+                best_aisle = aisle
+                best_obj   = obj
 
         additions.add(("+", best_aisle))
         remaining.remove(best_aisle)
@@ -272,11 +267,13 @@ def SBPSO(
     
     start = perf_counter()
 
+    aisles_data = problem.aisles
+
     swarm         = []
     prev_n_aisles = [0] * size
     universe      = set(range(problem.a))
 
-    global_best_obj, global_best_n_aisles, G, global_best_orders = (
+    global_best_obj, global_best_n_aisles, G = (
         generate_initial_swarm(problem, size, swarm)
     )
 
@@ -315,7 +312,7 @@ def SBPSO(
 
             prev_n_aisles[i] = particle.number_aisles
             for op, aisle in velocity:
-                aisle_items = problem.aisles[aisle]
+                aisle_items = aisles_data[aisle]
                 if op == "+":
                     particle.number_aisles += 1
                     particle.x.add(aisle)
@@ -333,7 +330,7 @@ def SBPSO(
             particle = swarm[i]
             prev_obj = particle.objective
 
-            particle.number_items, particle.orders = add_orders(problem, particle.aisles_items)
+            particle.number_items = problem.add_orders(particle.aisles_items)
             particle.objective = problem.objective_function(
                 particle.number_items, particle.number_aisles
             )
@@ -351,11 +348,18 @@ def SBPSO(
                 G                    = particle.pbest.copy()
                 global_best_obj      = particle.objective
                 global_best_n_aisles = particle.number_aisles
-                global_best_orders   = particle.orders[:]
+
+    # Assembling the available items for the best overall result -> faster than copying them over from generation to generation.
+    best_aisles_items = [0] * problem.i
+    for a in range(problem.a):
+        if a in G:
+            aisle = aisles_data[a]
+            for item in aisle:
+                best_aisles_items[item] += aisle[item]
 
     end = perf_counter()
 
-    problem.result["orders"]    = global_best_orders
+    problem.result["orders"]    = problem.view_orders(best_aisles_items)
     problem.result["aisles"]    = list(G)
     problem.result["objective"] = global_best_obj
     problem.result["time"]      = end - start

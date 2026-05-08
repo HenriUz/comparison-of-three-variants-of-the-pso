@@ -56,27 +56,107 @@ class Problem():
             print(f"Dataset {dataset} not found in the datasets folder.")
             exit()
 
-    def objective_function(self, number_items: int, number_aisles: int) -> float:
+    def add_orders(
+        self,
+        aisles_items: list[int]
+    ) -> int:
+        """
+        Greedily selects the orders with the largest number of items that do not violate capacity and supply constraints.
+
+        To ensure that the aisles always have the best combination of orders, this function assumes that no orders have been selected at the time it is called. And for optimization purposes, this function returns only the quantity of items in the selected orders.
+
+        Args:
+            aisles_items (list[int]): Available items.
+        
+        Returns:
+            number_items (int): Number of items in the orders.
+        """
+
+        number_items = 0
+
+        available_items = aisles_items.copy()
+        for o in self.sorted_orders: 
+            if number_items + o[1] <= self.ub:
+                valid = True
+
+                orders_items = self.orders[o[0]]        
+                for item in orders_items:
+                    if orders_items[item] > available_items[item]:
+                        valid = False
+                        break
+
+                if valid:
+                    number_items += o[1]
+                    for item in orders_items:
+                        available_items[item] -= orders_items[item]
+
+        return number_items
+    
+    def view_orders(
+        self,
+        aisles_items: list[int]
+    ) -> list[int]:
+        """
+        Greedily selects the orders with the largest number of items that do not violate capacity and supply constraints.
+
+        To ensure that the aisles always have the best combination of orders, this function assumes that no orders have been selected at the time it is called. Unlike `add_orders`, this function returns a list containing the IDs of the selected orders.
+
+        Args:
+            aisles_items (list[int]): Available items.
+        
+        Returns:
+            orders (tuple[int, list[int]]): Order IDs.
+        """
+        
+        orders       = []
+        number_items = 0
+
+        available_items = aisles_items.copy()
+        for o in self.sorted_orders:
+            if number_items + o[1] <= self.ub:
+                valid = True
+
+                orders_items = self.orders[o[0]]
+                for item in orders_items:
+                    if orders_items[item] > available_items[item]:
+                        valid = False
+                        break
+                
+                if valid:
+                    orders.append(o[0])
+                    number_items += o[1]
+                    for item in orders_items:
+                        available_items[item] -= orders_items[item]
+        
+        return orders
+
+    def objective_function(
+        self,
+        number_items: int,
+        number_aisles: int
+    ) -> float:
         """
         Calculates the value of the objective function and returns it. If the lower bound constraint is violated, or if `number_aisles` is 0, the return value will be 0. 
 
         Since the methods work directly with the aisles, which have no constraints, and use a greedy function that selects orders while respecting the upper bound and supply constraints (`add_orders`), this function does not check the previous constraints to avoid redundancy.
 
         Args:
-            number_items (int): Number of items in the selected orders.
+            number_items (int): Number of items in the orders.
             number_aisles (int): Number of selected aisles.
         
         Returns:
             Objective (float): Value of the objective function.
         """
         
-        # Checking capacity constraints and the number of aisles.
         if number_items < self.lb or number_aisles == 0:
             return 0.0
 
         return number_items / number_aisles
 
-    def save_solution(self, file: str) -> None:
+    def save_solution(
+        self,
+        file: str
+    ) -> None:
         """
         Creates or overwrites a file with the specified name in the results folder. This file contains the orders and aisles in the solution in the following format:
         - First line: an integer `o` representing the number of orders in the solution;
