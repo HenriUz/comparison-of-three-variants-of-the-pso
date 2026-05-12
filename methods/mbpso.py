@@ -307,10 +307,11 @@ def MBPSOzt(
                 vel_list[a] = vel
 
                 # V-shaped transfer -> stochastic bit update.
+                transfer_vel = vel
                 if vel < 0:
-                    vel = -vel
-                    
-                transfer = 1 - exp(-k * vel)
+                    transfer_vel = -vel
+
+                transfer = 1 - exp(-k * transfer_vel)
                 
                 if random() <= transfer:
                     if vel <= 0:
