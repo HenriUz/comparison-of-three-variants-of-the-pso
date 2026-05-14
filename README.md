@@ -49,3 +49,6 @@ In the `process` directory, there is a file named `dataset.py` that reads the sp
 The `methods` directory contains the code for the algorithms; the binary algorithms are in the `mbpso.py` file, and the set-based algorithm is in `sbpso.py`. The `utils.py` file contains code used in all the algorithms.
 
 Finally, the `results` directory contains the results obtained from the methods. The `wilcoxon.txt` file contains the Wilcoxon test results for all variants across the 30 runs, using 0.05 as the significance level. The `.csv` files are organized into: dataset, minimum value found, maximum value found, mean of values, standard deviation, gap, and average time. In the case of MBPSOzt, there is an indicator of the value of `k` used in front of the "_", with 05 representing 0.5.
+
+> [!note]
+> The `tests.py` file is used to perform the 30 runs and the Wilcoxon test. The `checker.py` file in the `utils` directory contains the evaluation code provided by Mercado Livre; it is used by `tests.py` to verify that the returned solutions are consistent. The `execution` directory contains the 30 solutions for each method in each instance, for performing the statistical test.
