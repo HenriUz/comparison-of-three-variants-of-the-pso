@@ -29,7 +29,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 5:
         print("Incorrect number of arguments.")
         print("Use: python main.py <dataset> <result_file> <method_number> <seed_number>")
-        print("Methods:\n\tYMBPSO: 0\n\tZMBPSO: 1\n\tSBPSO: 2")
+        print("Methods:\n\tMBPSO: 0\n\tMBPSO_zt: 1\n\tSBPSO: 2")
     else:
         try:
             method = int(sys.argv[3])
